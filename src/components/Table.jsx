@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Badge from "./Badge";
 import LineModal from "./LineModal";
 
-const Table = ({ lines }) => {
+const Table = ({ lines, status }) => {
   const [selectedLine, setSelectedLine] = useState(null);
+  const [lineStatuses, setLineStatuses] = useState({});
+
+  useEffect(() => {
+    // Create a map to store line statuses by line ID
+    const statusMap = {};
+    status.forEach((lineStatus) => {
+      statusMap[lineStatus.id] = lineStatus.lineStatuses;
+    });
+    setLineStatuses(statusMap);
+  }, []);
 
   const openModal = (line) => {
     setSelectedLine(line);
@@ -30,7 +40,7 @@ const Table = ({ lines }) => {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Operational
+                    Status
                   </th>
                   <th scope="col" className="relative px-6 py-3">
                     <span className="sr-only">Edit</span>
@@ -40,19 +50,21 @@ const Table = ({ lines }) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {lines.length > 0 &&
                   lines.map((line) => {
+                    const lineStatus = lineStatuses[line.id] || [];
+                    const statusMessage =
+                      lineStatus.length === 0 ||
+                      lineStatus
+                        .map((status) => status.statusSeverityDescription)
+                        .join(", ");
+
                     return (
                       <tr key={line.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {line.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {line.disruptions.length === 0 ? (
-                            <Badge disruptions={false} />
-                          ) : (
-                            <Badge disruptions={true} />
-                          )}
+                          <Badge statusMessage={statusMessage} />
                         </td>
-
                         <td
                           onClick={() => openModal(line)}
                           className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-indigo-600 hover:text-indigo-900 cursor-pointer hover:underline"
@@ -65,7 +77,11 @@ const Table = ({ lines }) => {
               </tbody>
             </table>
             {selectedLine && (
-              <LineModal line={selectedLine} onClose={closeModal} />
+              <LineModal
+                line={selectedLine}
+                onClose={closeModal}
+                lineStatuses={lineStatuses}
+              />
             )}
           </div>
         </div>

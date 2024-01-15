@@ -8,6 +8,7 @@ import { debounce } from "./utils/debounce";
 function App() {
   const [allLines, setAllLines] = useState([]);
   const [filteredLines, setFilteredLines] = useState([]);
+  const [status, setStatus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -23,6 +24,19 @@ function App() {
     }
   };
 
+  const fetchLineStatuses = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.tfl.gov.uk/Line/mode/tube/status`
+      );
+      setStatus(response.data);
+    } catch (error) {
+      console.error("Error fetching status:", error);
+    } finally {
+      setLoading(false); // Set loading to false once data is fetched (either success or error)
+    }
+  };
+
   const debouncedSearch = debounce((term) => {
     const filtered = allLines.filter((line) =>
       line.name.toLowerCase().includes(term.toLowerCase())
@@ -32,6 +46,7 @@ function App() {
 
   useEffect(() => {
     fetchAllLines();
+    fetchLineStatuses();
   }, []);
 
   useEffect(() => {
@@ -54,9 +69,9 @@ function App() {
       </div>
       {loading ? (
         <p>Loading...</p>
-      ) : filteredLines.length > 0 ? (
+      ) : filteredLines.length > 0 && status.length > 0 ? (
         <div className="mt-4">
-          <Table lines={filteredLines} />
+          <Table lines={filteredLines} status={status} />
         </div>
       ) : (
         <div className="mt-4">

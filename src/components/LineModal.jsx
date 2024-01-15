@@ -2,8 +2,9 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { IoMdClose } from "react-icons/io";
 import axios from "axios";
+import Badge from "./Badge";
 
-const LineModal = ({ line, onClose }) => {
+const LineModal = ({ line, onClose, lineStatuses }) => {
   const [data, setData] = useState([]);
   const [arrivalData, setArrivalData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,11 @@ const LineModal = ({ line, onClose }) => {
       setLoading(false); // Set loading to false once data is fetched (either success or error)
     }
   };
+
+  const lineStatus = lineStatuses[line.id] || [];
+  const statusMessage =
+    lineStatus.length === 0 ||
+    lineStatus.map((status) => status.statusSeverityDescription).join(", ");
 
   useEffect(() => {
     fetchLine();
@@ -106,68 +112,43 @@ const LineModal = ({ line, onClose }) => {
 
                           <section
                             aria-labelledby="options-heading"
-                            className="mt-8"
+                            className="mt-2"
                           >
-                            <h3 id="options-heading" className="sr-only">
-                              Product options
-                            </h3>
-
-                            <form>
-                              {/* Color picker */}
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-900">
-                                  Upcoming arrival
-                                </h4>
-
-                                {arrivalData && arrivalData.length > 0 ? (
-                                  <p>
-                                    {arrivalData[0].stationName} on{" "}
-                                    {arrivalData[0].platformName} towards{" "}
-                                    {arrivalData[0].destinationName} arriving at{" "}
-                                    {formatArrivalTime(
-                                      arrivalData[0].expectedArrival
-                                    )}
-                                    .
-                                  </p>
-                                ) : (
-                                  <p>No data available.</p>
-                                )}
-                              </div>
-
-                              <div
-                                className={`mt-8 w-full rounded-md py-3 px-8 flex items-center justify-center text-base font-medium hover:outline-none ${
-                                  line.disruptions.length !== 0
-                                    ? "bg-red-600 hover:bg-red-700 text-white"
-                                    : "bg-green-600 hover:bg-green-700 text-white"
-                                }`}
-                              >
-                                <svg
-                                  className={`mr-1.5 h-2 w-2 ${
-                                    line.disruptions.length !== 0
-                                      ? "text-red-400"
-                                      : " text-green-400"
-                                  }`}
-                                  fill="currentColor"
-                                  viewBox="0 0 8 8"
-                                >
-                                  <circle cx={4} cy={4} r={3} />
-                                </svg>
-                                {line.disruptions.length !== 0
-                                  ? "Not Operational"
-                                  : "Operational"}
-                              </div>
-
-                              <p className="absolute top-4 left-4 text-center sm:static sm:mt-8">
-                                <a
-                                  href="https://tfl.gov.uk/fares/how-to-pay-and-where-to-buy-tickets-and-oyster/buying-tickets-and-oyster"
-                                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  Buy tickets
-                                </a>
+                            <div className="mb-4">
+                              <Badge statusMessage={statusMessage} />
+                              <p className="mt-2 text-sm font-medium">
+                                {lineStatus[0]?.reason}
                               </p>
-                            </form>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900">
+                                Upcoming arrival
+                              </h4>
+
+                              {arrivalData && arrivalData.length > 0 ? (
+                                <p>
+                                  {arrivalData[0].stationName} on{" "}
+                                  {arrivalData[0].platformName} towards{" "}
+                                  {arrivalData[0].destinationName} arriving at{" "}
+                                  {formatArrivalTime(
+                                    arrivalData[0].expectedArrival
+                                  )}
+                                  .
+                                </p>
+                              ) : (
+                                <p>No data available.</p>
+                              )}
+                            </div>
+                            <p className="absolute top-4 left-4 text-center sm:static sm:mt-8">
+                              <a
+                                href="https://tfl.gov.uk/fares/how-to-pay-and-where-to-buy-tickets-and-oyster/buying-tickets-and-oyster"
+                                className="font-medium text-indigo-600 hover:text-indigo-500"
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Buy tickets
+                              </a>
+                            </p>
                           </section>
                         </div>
                       </div>
